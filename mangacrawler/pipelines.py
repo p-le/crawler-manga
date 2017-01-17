@@ -39,7 +39,15 @@ class MongoDBPipeLine(object):
         manga = self.db["manga"].find_one({"title": item['manga'] }, {"title": 1, "chapters.title": 1} )
         
         if not manga:
-            _id = self.db["manga"].insert({"title": item['manga']})
+            _id = self.db["manga"].insert({
+                "title": item['manga'],
+                "name": item['name'],
+                "description": item['description'],
+                "thumb": item['thumb'],
+                "genres": item['genres'],
+                "view": item['view'],
+                "onGoing": item['onGoing']
+            })
         else:
             _id = manga["_id"]
 

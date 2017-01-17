@@ -10,6 +10,12 @@ from scrapy import Item, Field
 
 class MangaItem(Item):
     manga = Field()
+    name = Field()
+    description = Field()
+    thumb = Field()
+    genres = Field()
+    view = Field()
+    onGoing = Field()
     title = Field()
     imgs = Field()
     date = Field()

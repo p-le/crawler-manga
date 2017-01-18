@@ -1,23 +1,29 @@
 # -*- coding: utf-8 -*-
 import scrapy
+from urllib.parse import urlparse
+from pathlib import Path
+import re
 from mangacrawler.items import MangaItem
 
 class MangakSpider(scrapy.Spider):
     name = "mangak"
     allowed_domains = ["mangak.info"]
-    start_urls = ['http://mangak.info/attack-on-titan-2r/']
+    start_urls = ['http://mangak.info/hiep-khach-giang-ho/']
 
     def parse(self, response):
         eles = response.xpath('//div[@class="chapter-list"]/div[@class="row"]')
         infoDiv = response.xpath('//div[@class="truyen_if_wrap"]')
         
         lis = infoDiv.xpath('ul/li')
-        title = "Attack on Titan"
+        title = "Hiệp Khách Giang Hồ"
+        o = urlparse(response.url)
+        name = o.path.replace('/', '')
+
         genres = lis[2].xpath('a/text()').extract()
         view = int(lis[6].xpath('text()').extract_first().replace(',', ''))
         thumb = infoDiv.xpath('div/span/img/@src').extract_first()
         onGoing = False
-        if  lis[4].xpath('text()').extract_first() == " Đang cập nhật":
+        if  lis[4].xpath('text()').extract_first().lstrip().rstrip() == "Đang cập nhật":
             onGoing = True
         description = ''.join(response.xpath('//div[@class="truyen_description"]/div/p//text()').extract())
 
@@ -26,8 +32,8 @@ class MangakSpider(scrapy.Spider):
             chapterUrl = ele.xpath('span/a/@href').extract_first()
             date = ele.xpath('span[2]/text()').extract_first()
             request = scrapy.Request(chapterUrl, callback=self.parse_chapter)
-            request.meta['manga'] = "Attack on Titan"
-            request.meta['name'] = title.lower().replace(' ', '-')
+            request.meta['manga'] = title
+            request.meta['name'] = name
             request.meta['description'] = description
             request.meta['thumb'] = thumb
             request.meta['genres'] = genres
@@ -35,7 +41,18 @@ class MangakSpider(scrapy.Spider):
             request.meta['onGoing'] = onGoing
             request.meta['title'] = chapter
             request.meta['date'] = date
-            yield request
+
+
+            p = Path("crawled_urls")
+            found = False
+            if p.is_file():
+                with p.open() as file:
+                    for line in file:
+                        if chapterUrl in line:
+                            found = True
+                    file.close()
+            if not found:
+                yield request
         
     def parse_chapter(self, response):
         imgs = response.xpath('//div[@class="vung_doc"]/img/@src').extract()
@@ -48,7 +65,13 @@ class MangakSpider(scrapy.Spider):
         item['view'] = response.meta['view']
         item['onGoing'] = response.meta['onGoing']
         item['title'] = response.meta['title']
+        item['chapterName'] = response.meta['title'][response.meta['title'].index('chap'):].lower().replace(' ', '-').replace('-r', '')
         item['imgs'] = imgs
+        item['url'] = response.url;
         item['date'] = response.meta['date']
+
+        file = open("crawled_urls", "a")
+        file.write(response.url + "\n")
+        file.close()
+
         yield item
-            

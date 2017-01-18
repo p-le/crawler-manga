@@ -52,8 +52,13 @@ class MongoDBPipeLine(object):
             _id = manga["_id"]
 
         self.db["chapter"].update({"title": item['title']}, {
-            "mangaId": _id,
+            "manga": item['name'],
+            "chapterName": item['chapterName'],
             "title": item['title'],
             "created": item['date'],
             "imgs": item['imgs']
         }, upsert=True)
+
+        self.db["crawled_urls"].insert({
+            "url": item['url']
+        })

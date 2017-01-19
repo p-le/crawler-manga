@@ -17,19 +17,21 @@ RoboMongo
 
 A step by step series of examples that tell you have to get a development env running
 
-Say what the step will be
+settings.py
+
+Change request delay time
 
 ```
-Give the example
+DOWNLOAD_DELAY = 10
 ```
 
-And repeat
+And your local Mongo Instance
 
 ```
-until finished
+MONGO_URI = "mongodb://localhost:27017/"
+MONGO_DB = "allapi"
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
 
 ## Built With
 

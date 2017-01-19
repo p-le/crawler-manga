@@ -31,7 +31,11 @@ And your local Mongo Instance
 MONGO_URI = "mongodb://localhost:27017/"
 MONGO_DB = "allapi"
 ```
+### Running
 
+```
+scrapy crawl mangak
+```
 
 ## Built With
 

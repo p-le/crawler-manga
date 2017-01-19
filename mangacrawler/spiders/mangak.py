@@ -8,14 +8,21 @@ from mangacrawler.items import MangaItem
 class MangakSpider(scrapy.Spider):
     name = "mangak"
     allowed_domains = ["mangak.info"]
-    start_urls = ['http://mangak.info/hiep-khach-giang-ho/']
+    start_urls = ['http://mangak.info/']
 
     def parse(self, response):
+        mangaAs= response.xpath('//div[@class="update_item"]//a[contains(@class,"tooltip")]')
+        for mangaA in mangaAs:
+            manga = mangaA.xpath('text()').extract_first()
+            mangaUrl = mangaA.xpath('@href').extract_first()
+            request = scrapy.Request(mangaUrl, callback=self.parse_manga)
+            request.meta['manga'] = manga
+            yield request
+    def parse_manga(self, response):
         eles = response.xpath('//div[@class="chapter-list"]/div[@class="row"]')
         infoDiv = response.xpath('//div[@class="truyen_if_wrap"]')
         
         lis = infoDiv.xpath('ul/li')
-        title = "Hiệp Khách Giang Hồ"
         o = urlparse(response.url)
         name = o.path.replace('/', '')
 
@@ -32,8 +39,8 @@ class MangakSpider(scrapy.Spider):
             chapterUrl = ele.xpath('span/a/@href').extract_first()
             date = ele.xpath('span[2]/text()').extract_first()
             request = scrapy.Request(chapterUrl, callback=self.parse_chapter)
-            request.meta['manga'] = title
             request.meta['name'] = name
+            request.meta['manga'] = response.meta['manga']
             request.meta['description'] = description
             request.meta['thumb'] = thumb
             request.meta['genres'] = genres
